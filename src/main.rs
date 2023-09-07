@@ -7,17 +7,17 @@ use scanner::*;
 
 use std::env::args;
 use std::fs::read_to_string;
-use std::io::{self};
+use std::io::{self, stdout, Write};
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = args().collect();
-    println!("args: {:?}", args);
-    if args.len() > 2 {
-        println!("Usage: lox-ast [script]");
-    } else if args.len() == 1 {
-        _ = run_file(&args[1]);
-    } else {
-        run_promt();
+    match args.len() {
+        1 => run_promt(),
+        2 => run_file(&args[1]).expect("Couldn't run file"),
+        _ => {
+            println!("Usage: lox-ast [script]");
+            std::process::exit(64);
+        }
     }
 
     Ok(())
@@ -29,7 +29,7 @@ fn run_file(path: &String) -> io::Result<()> {
         Ok(_) => {}
         Err(mut m) => {
             m.report("".to_string());
-            std::process::exit(64);
+            std::process::exit(65);
         }
     }
 
@@ -38,6 +38,8 @@ fn run_file(path: &String) -> io::Result<()> {
 
 fn run_promt() {
     let stdin = io::stdin();
+    print!("> ");
+    let _ = stdout().flush();
     for line in stdin.lines() {
         if let Ok(line) = line {
             if line.is_empty() {
@@ -45,20 +47,22 @@ fn run_promt() {
             }
             match run(line) {
                 Ok(_) => {}
-                Err(mut m) => {
-                    m.report("".to_string());
+                Err(mut e) => {
+                    e.report("".to_string());
                     std::process::exit(65);
                 }
             }
         } else {
             break;
         }
+        print!("> ");
+        let _ = stdout().flush();
     }
 }
 
 fn run(source: String) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
-    let tokens = scanner.scan_tokens();
+    let tokens = scanner.scan_tokens()?;
 
     for token in tokens {
         println!("{:?}", token);

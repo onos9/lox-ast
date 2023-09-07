@@ -27,8 +27,8 @@ pub enum TokenType {
 
     // Literals.
     Identifier(String),
-    String(String),
-    Number(f64),
+    String,
+    Number,
 
     // Keywords.
     And,
@@ -51,6 +51,6 @@ pub enum TokenType {
 
     // Other.
     Eof,
-    UnterminatedString,
+    // UnterminatedString,
     Unknown(char),
 }

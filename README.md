@@ -1,2 +1,4 @@
 # lox-ast
-AST vertion of the Lox interpreter in Rust
+Rust port of the Interpreter for the lox programming language created by Bob Nystrom in the book Crafting Interpreters.
+
+
