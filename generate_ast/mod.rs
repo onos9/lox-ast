@@ -25,7 +25,7 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
     let mut tree_types: Vec<TreeType> = Vec::new();
 
     writeln!(file, "use crate::error::*;")?;
-    writeln!(file, "use crate::token::*;")?;
+    writeln!(file, "use crate::tokens::*;")?;
 
     for ttype in types {
         let (base_class_name, args) = ttype.split_once(":").unwrap();
@@ -36,11 +36,11 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
         for arg in ags_split {
             let (tpy, name) = arg.trim().split_once(" ").unwrap();
             let field: String;
-            if tpy == "Token" {
-                field = format!("{}: {}", name, tpy);
-            } else {
-                field = format!("{}: Box<{}>", name, tpy);
-            }
+            field = match tpy {
+                "Token" => format!("{}: {}", name, tpy),
+                "Object" => format!("{}: Option<{}>", name, tpy),
+                _ => format!("{}: Box<{}>", name, tpy),
+            };
 
             fields.push(field);
         }
@@ -63,11 +63,29 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
     }
     writeln!(file, "}}\n")?;
 
+    // Generate base_name impl
+    writeln!(file, "impl Expr {{")?;
+    writeln!(
+        file,
+        "    pub fn eccept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {{"
+    )?;
+    writeln!(file, "        match self {{")?;
+    for tt in &tree_types {
+        writeln!(
+            file,
+            "           Expr::{}(be) => be.eccept(visitor),",
+            tt.base_class_name.trim()
+        )?;
+    }
+    writeln!(file, "        }}")?;
+    writeln!(file, "    }}")?;
+    writeln!(file, "}}\n")?;
+
     // Generate struct
     for tt in &tree_types {
         writeln!(file, "pub struct {} {{", tt.class_name)?;
         for f in &tt.fields {
-            writeln!(file, "    {f},")?;
+            writeln!(file, "    pub {f},")?;
         }
         writeln!(file, "}}")?;
         writeln!(file, "")?;
@@ -75,7 +93,7 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
     writeln!(file, "")?;
 
     // Generate trait
-    writeln!(file, "pub trait ExprVisitor<T> {{")?;
+    writeln!(file, "trait ExprVisitor<T> {{")?;
     for tt in &tree_types {
         writeln!(
             file,
@@ -89,10 +107,10 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
 
     // Generate impl
     for tt in &tree_types {
-        writeln!(file, "pub impl {} {{", tt.class_name)?;
+        writeln!(file, "impl {} {{", tt.class_name)?;
         writeln!(
             file,
-            "    fn eccept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {{"
+            "    pub fn eccept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {{"
         )?;
         writeln!(
             file,

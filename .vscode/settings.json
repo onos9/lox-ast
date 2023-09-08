@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./ast-printer/Cargo.toml"
+    ]
+}
