@@ -22,22 +22,16 @@ impl Scanner {
         }
     }
     pub fn scan_tokens(&mut self) -> Result<&Vec<Token>, LoxError> {
-        let mut had_error: Option<LoxError> = None;
         while !self.is_at_end() {
             self.start = self.current;
-            match self.scan_token() {
-                Ok((ttype, literals)) => self.add_token(ttype, literals),
-                Err(e) => {
-                    had_error = Some(e);
-                }
+            let (ttype, literals) = self.scan_token()?;
+            match ttype {
+                TokenType::Unknown => {}
+                _ => self.add_token(ttype, literals),
             }
         }
         self.tokens.push(Token::eof(self.line));
-
-        match had_error {
-            Some(e) => Err(e),
-            None => Ok(&self.tokens),
-        }
+        Ok(&self.tokens)
     }
 
     fn is_at_end(&self) -> bool {
@@ -52,16 +46,18 @@ impl Scanner {
 
     fn add_token(&mut self, ttype: TokenType, literals: Option<Object>) {
         let lexeme = self.source[self.start..self.current].iter().collect();
+
         self.tokens
             .push(Token::new(ttype, lexeme, literals, self.line));
     }
 
-    fn is_match(&mut self, expected: char) -> bool {
-        if let Some(ch) = self.source.get(self.current) {
-            self.current += 1;
-            return *ch != expected;
+    fn is_match(&mut self, expected: char) -> Option<()> {
+        if self.source[self.current] != expected || self.is_at_end() {
+            return None;
         }
-        true
+
+        self.current += 1;
+        Some(())
     }
 
     fn string(&mut self) -> Result<Object, LoxError> {
@@ -75,7 +71,7 @@ impl Scanner {
         if self.is_at_end() {
             return Err(LoxError::error(
                 self.line,
-                "Unterminated string.".to_string(),
+                "Unterminated string".to_string(),
             ));
         }
 
@@ -106,19 +102,19 @@ impl Scanner {
             Ok(num) => Ok(Object::Num(num)),
             Err(_) => Err(LoxError::error(
                 self.line,
-                "Unterminated string.".to_string(),
+                "Unable to parse number".to_string(),
             )),
         }
     }
 
-    fn divider(&mut self, ch: char) -> Option<TokenType> {
-        if self.is_match(ch) {
+    fn divider(&mut self, ch: char) -> Result<TokenType, LoxError> {
+        if let Some(_) = self.is_match(ch) {
             while self.peek() != '\n' && !self.is_at_end() {
                 self.advance();
             }
-            Some(TokenType::Slash)
+            Ok(TokenType::Unknown)
         } else {
-            None
+            Ok(TokenType::Slash)
         }
     }
 
@@ -144,7 +140,7 @@ impl Scanner {
         let text: String = self.source[self.start..self.current].iter().collect();
         match self.keyword(text.as_str()) {
             Some(ttype) => Ok(ttype),
-            None => Ok(TokenType::Identifier(text)),
+            None => Ok(TokenType::Identifier),
         }
     }
 
@@ -166,6 +162,7 @@ impl Scanner {
             "this" => Some(TokenType::This),
             "true" => Some(TokenType::True),
             "var" => Some(TokenType::Var),
+            "let" => Some(TokenType::Let),
             "while" => Some(TokenType::While),
             "import" => Some(TokenType::Import),
             _ => None,
@@ -175,9 +172,10 @@ impl Scanner {
     fn scan_token(&mut self) -> Result<(TokenType, Option<Object>), LoxError> {
         let c = self.advance();
         match c {
+            ' ' | '\t' | '\r' => Ok((TokenType::Unknown, None)),
             '\n' => {
                 self.line += 1;
-                Ok((TokenType::Unknown(c), None))
+                Ok((TokenType::Unknown, None))
             }
 
             '.' => Ok((TokenType::Dot, None)),
@@ -195,33 +193,33 @@ impl Scanner {
 
             // Operators
             '!' => match self.is_match('=') {
-                true => Ok((TokenType::BangEqual, None)),
-                false => Ok((TokenType::Bang, None)),
+                Some(_) => Ok((TokenType::BangEqual, None)),
+                None => Ok((TokenType::Bang, None)),
             },
             '=' => match self.is_match('=') {
-                true => Ok((TokenType::EqualEqual, None)),
-                false => Ok((TokenType::Equal, None)),
+                Some(_) => Ok((TokenType::EqualEqual, None)),
+                None => Ok((TokenType::Equal, None)),
             },
             '<' => match self.is_match('=') {
-                true => Ok((TokenType::LessEqual, None)),
-                false => Ok((TokenType::Less, None)),
+                Some(_) => Ok((TokenType::LessEqual, None)),
+                None => Ok((TokenType::Less, None)),
             },
             '>' => match self.is_match('=') {
-                true => Ok((TokenType::GreaterEqual, None)),
-                false => Ok((TokenType::Greater, None)),
-            },
-
-            '/' => match self.divider(c) {
-                Some(ttype) => Ok((ttype, None)),
-                None => Ok((TokenType::Unknown(c), None)),
+                Some(_) => Ok((TokenType::GreaterEqual, None)),
+                None => Ok((TokenType::Greater, None)),
             },
 
             // TODO: handle excape sequence
             '"' => Ok((TokenType::String, Some(self.string()?))),
             '0'..='9' => Ok((TokenType::Number, Some(self.number()?))),
+            '/' => Ok((self.divider('/')?, None)),
             
+
             _ if c.is_ascii_alphabetic() || c == '_' => Ok((self.identifier(c)?, None)),
-            c => Ok((TokenType::Unknown(c), None)),
+            _ => Err(LoxError::error(
+                self.line,
+                "Unexpected character".to_string(),
+            )),
         }
     }
 }

@@ -1,0 +1,29 @@
+var a = 1;
+while (a < 10) {
+  print a;
+  a = a + 1;
+}
+
+for (var a = 1; a < 10; a = a + 1) {
+  print a;
+}
+if (condition) {
+  print "yes";
+} else {
+  print "no";
+}
+
+var breakfast = "bagels";
+print breakfast; // "bagels".
+breakfast = "beignets";
+print breakfast; // "beignets".
+
+fun addPair(a, b) {
+  return a + b;
+}
+
+fun identity(a) {
+  return a;
+}
+
+print identity(addPair)(1, 2); // Prints "3".
