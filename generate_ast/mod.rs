@@ -1,4 +1,3 @@
-use std::env::args;
 use std::fs::File;
 use std::io::{self, Write};
 
