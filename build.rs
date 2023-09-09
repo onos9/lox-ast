@@ -1,5 +1,5 @@
-mod generate_ast;
-use generate_ast::*;
+mod generate;
+use generate::*;
 
 use std::io;
 

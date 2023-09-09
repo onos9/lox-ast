@@ -2,8 +2,12 @@ mod error;
 mod scanner;
 mod token_type;
 mod tokens;
+mod perser;
+mod expr;
+
 use error::*;
 use scanner::*;
+use perser::*;
 
 use std::env::args;
 use std::fs::read_to_string;

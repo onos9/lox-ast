@@ -2,7 +2,7 @@ use std::fmt::{self};
 
 use crate::token_type::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Object {
     Num(f64),
     Str(String),
@@ -23,12 +23,12 @@ impl fmt::Display for Object {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
-    ttype: TokenType,
-    lexeme: String,
-    literals: Option<Object>,
-    line: usize,
+    pub ttype: TokenType,
+    pub lexeme: String,
+    pub literals: Option<Object>,
+    pub line: usize,
 }
 
 impl Token {

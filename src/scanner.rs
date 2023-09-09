@@ -1,5 +1,5 @@
 use crate::error::*;
-use crate::token_type::TokenType;
+use crate::token_type::*;
 use crate::tokens::*;
 
 #[derive(Debug)]
@@ -30,6 +30,7 @@ impl Scanner {
                 _ => self.add_token(ttype, literals),
             }
         }
+        
         self.tokens.push(Token::eof(self.line));
         Ok(&self.tokens)
     }
