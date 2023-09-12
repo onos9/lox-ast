@@ -125,31 +125,60 @@ impl Perser {
 
         if self.is_match(&vec![TokenType::Number, TokenType::String]) {
             return Ok(Expr::Literal(LiteralExpr {
-                value: self.previous().literals,
+                value: self.previous().literal,
             }));
         }
 
         if self.is_match(&vec![TokenType::LeftParen]) {
-            let expr = self.expression()?;
-            self.consume(
-                TokenType::RightParen,
+            if let Some(_) = self.consume(TokenType::RightParen) {
+                return Ok(self.expression()?);
+            }
+            return Err(Perser::error(
+                None,
                 "Expect ')' after expression.".to_string(),
-            )?;
-            return Ok(expr);
+            ));
         }
 
-        Err(LoxError::error(0, "Unknown token type".to_string()))
+        Err(Perser::error(None, "Unknown token type".to_string()))
     }
 
-    fn consume(&mut self, ttype: TokenType, msg: String) -> Result<Token, LoxError> {
+    fn consume(&mut self, ttype: TokenType) -> Option<Token> {
         if self.check(ttype) {
-            return Ok(self.advance());
+            return Some(self.advance());
         }
 
-        Err(LoxError::error(self.peek().line, msg))
+        None
     }
 
-    fn is_match(&mut self, ttypes: &Vec<TokenType>) -> bool {
+    fn error(token: Option<Token>, msg: String) -> LoxError {
+        LoxError::error(token, msg)
+    }
+
+    fn synchronize(&mut self) {
+        if self.previous().is(TokenType::Semicolon) {
+            return;
+        }
+
+        while !self.is_at_end() {
+            if matches!(
+                self.peek().ttype,
+                TokenType::Class
+                    | TokenType::Fun
+                    | TokenType::Var
+                    | TokenType::For
+                    | TokenType::If
+                    | TokenType::While
+                    | TokenType::Print
+                    | TokenType::Return
+            ) {
+                return;
+            }
+
+            self.advance();
+        }
+    }
+
+    fn is_match(&mut self, ttypes: &[TokenType]) -> bool {
         for ttype in ttypes {
             if self.check(ttype.clone()) {
                 self.advance();
@@ -164,17 +193,18 @@ impl Perser {
             return false;
         }
 
-        self.peek().ttype == ttype
+        self.peek().is(ttype)
     }
 
     fn is_at_end(&mut self) -> bool {
-        self.peek().ttype == TokenType::Eof
+        self.peek().is(TokenType::Eof)
     }
 
     fn advance(&mut self) -> Token {
         if !self.is_at_end() {
             self.current += 1;
         }
+
         self.previous()
     }
 

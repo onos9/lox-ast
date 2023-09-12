@@ -30,7 +30,7 @@ impl Scanner {
                 _ => self.add_token(ttype, literals),
             }
         }
-        
+
         self.tokens.push(Token::eof(self.line));
         Ok(&self.tokens)
     }
@@ -70,10 +70,7 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(LoxError::error(
-                self.line,
-                "Unterminated string".to_string(),
-            ));
+            return Err(LoxError::error(None, "Unterminated string".to_string()));
         }
 
         self.advance();
@@ -101,10 +98,7 @@ impl Scanner {
         let val: String = self.source[self.start..self.current].iter().collect();
         match val.parse::<f64>() {
             Ok(num) => Ok(Object::Num(num)),
-            Err(_) => Err(LoxError::error(
-                self.line,
-                "Unable to parse number".to_string(),
-            )),
+            Err(_) => Err(LoxError::error(None, "Unable to parse number".to_string())),
         }
     }
 
@@ -214,13 +208,9 @@ impl Scanner {
             '"' => Ok((TokenType::String, Some(self.string()?))),
             '0'..='9' => Ok((TokenType::Number, Some(self.number()?))),
             '/' => Ok((self.divider('/')?, None)),
-            
 
             _ if c.is_ascii_alphabetic() || c == '_' => Ok((self.identifier(c)?, None)),
-            _ => Err(LoxError::error(
-                self.line,
-                "Unexpected character".to_string(),
-            )),
+            _ => Err(LoxError::error(None, "Unexpected character".to_string())),
         }
     }
 }

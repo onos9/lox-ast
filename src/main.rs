@@ -31,8 +31,8 @@ fn run_file(path: &String) -> io::Result<()> {
     let buf = read_to_string(path)?;
     match run(buf) {
         Ok(_) => {}
-        Err(mut m) => {
-            m.report("".to_string());
+        Err(mut e) => {
+            e.report("".to_string());
             std::process::exit(65);
         }
     }

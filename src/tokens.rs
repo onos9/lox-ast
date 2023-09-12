@@ -27,16 +27,16 @@ impl fmt::Display for Object {
 pub struct Token {
     pub ttype: TokenType,
     pub lexeme: String,
-    pub literals: Option<Object>,
+    pub literal: Option<Object>,
     pub line: usize,
 }
 
 impl Token {
-    pub fn new(ttype: TokenType, lexeme: String, literals: Option<Object>, line: usize) -> Token {
+    pub fn new(ttype: TokenType, lexeme: String, literal: Option<Object>, line: usize) -> Token {
         Token {
             ttype,
             lexeme,
-            literals,
+            literal,
             line,
         }
     }
@@ -45,9 +45,13 @@ impl Token {
         Token {
             ttype: TokenType::Eof,
             lexeme: "".to_string(),
-            literals: None,
+            literal: None,
             line,
         }
+    }
+
+    pub fn is(&self, ttype: TokenType) -> bool {
+        self.ttype == ttype
     }
 }
 
@@ -58,7 +62,7 @@ impl fmt::Display for Token {
             "{:?} {} {}",
             self.ttype,
             self.lexeme,
-            match &self.literals {
+            match &self.literal {
                 Some(literal) => literal.to_string(),
                 None => "None".to_string(),
             },
