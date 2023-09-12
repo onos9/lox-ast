@@ -1,21 +1,17 @@
-mod error;
-mod expr;
-mod token_type;
-mod tokens;
 
-use error::*;
-use expr::*;
-use token_type::*;
-use tokens::*;
+use crate::error::*;
+use crate::expr::*;
+use crate::token_type::*;
+use crate::tokens::*;
 
-struct AstPrinter;
+pub struct AstPrinter;
 
 impl AstPrinter {
-    fn print(&self, expr: &Expr) -> Result<String, LoxError> {
+    pub fn print(&self, expr: &Expr) -> Result<String, LoxError> {
         expr.eccept(self)
     }
 
-    fn parenthesize(&self, lexeme: &String, exprs: &[&Box<Expr>]) -> Result<String, LoxError> {
+    pub fn parenthesize(&self, lexeme: &String, exprs: &[&Box<Expr>]) -> Result<String, LoxError> {
         let mut builder = format!("({lexeme}");
         for expr in exprs {
             builder = format!("{builder} {}", expr.eccept(self)?);
@@ -46,13 +42,13 @@ impl ExprVisitor<String> for AstPrinter {
     }
 }
 
-fn main() {
+pub fn _print() {
     let expression = Expr::Binary(BinaryExpr {
         left: Box::new(Expr::Unary(UnaryExpr {
             operator: Token {
                 ttype: TokenType::Minus,
                 lexeme: "-".to_string(),
-                literals: None,
+                literal: None,
                 line: 1,
             },
             right: Box::new(Expr::Literal(LiteralExpr {
@@ -62,7 +58,7 @@ fn main() {
         operator: Token {
             ttype: TokenType::Star,
             lexeme: "*".to_string(),
-            literals: None,
+            literal: None,
             line: 1,
         },
         right: Box::new(Expr::Grouping(GroupingExpr {

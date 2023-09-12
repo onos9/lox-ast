@@ -1,13 +1,15 @@
 mod error;
+mod expr;
+mod perser;
+mod printer;
 mod scanner;
 mod token_type;
 mod tokens;
-mod perser;
-mod expr;
 
 use error::*;
-use scanner::*;
 use perser::*;
+use printer::*;
+use scanner::*;
 
 use std::env::args;
 use std::fs::read_to_string;
@@ -67,9 +69,14 @@ fn run_promt() {
 fn run(source: String) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens()?;
+    let mut parser = Perser::new(&tokens);
 
-    for token in tokens {
-        println!("{:?}", token);
+    match parser.parse() {
+        None => {}
+        Some(expr) => {
+            let printer = AstPrinter {};
+            println!("AST Printr: \n{}", printer.print(&expr)?);
+        }
     }
 
     Ok(())

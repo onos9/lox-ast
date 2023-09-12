@@ -28,7 +28,7 @@ impl LoxError {
 
     pub fn report(&mut self, loc: String) {
         if let Some(token) = &self.token {
-            if token.is(TokenType::Eof) {
+            if token.is(&TokenType::Eof) {
                 eprintln!("{} as end {}", self.line, self.msg)
             } else {
                 eprintln!("{} at '{}' {}", self.line, token.lexeme, self.msg)

@@ -3,14 +3,21 @@ use crate::expr::*;
 use crate::token_type::*;
 use crate::tokens::*;
 
-pub struct Perser {
-    tokens: Vec<Token>,
+pub struct Perser<'a> {
+    tokens: &'a Vec<Token>,
     current: usize,
 }
 
-impl Perser {
-    fn new(tokens: Vec<Token>) -> Perser {
+impl<'a> Perser<'a> {
+    pub fn new(tokens: &Vec<Token>) -> Perser {
         Perser { tokens, current: 0 }
+    }
+
+    pub fn parse(&mut self) -> Option<Expr> {
+        match self.expression() {
+            Ok(expr) => Some(expr),
+            Err(_) => None,
+        }
     }
 
     fn expression(&mut self) -> Result<Expr, LoxError> {
@@ -107,13 +114,13 @@ impl Perser {
     fn primary(&mut self) -> Result<Expr, LoxError> {
         if self.is_match(&vec![TokenType::False]) {
             return Ok(Expr::Literal(LiteralExpr {
-                value: Some(Object::True),
+                value: Some(Object::False),
             }));
         }
 
         if self.is_match(&vec![TokenType::True]) {
             return Ok(Expr::Literal(LiteralExpr {
-                value: Some(Object::Nil),
+                value: Some(Object::True),
             }));
         }
 
@@ -131,19 +138,24 @@ impl Perser {
 
         if self.is_match(&vec![TokenType::LeftParen]) {
             if let Some(_) = self.consume(TokenType::RightParen) {
-                return Ok(self.expression()?);
+                let expr = Expr::Grouping(GroupingExpr {
+                    expression: Box::new(self.expression()?),
+                });
+
+                return Ok(expr);
             }
+
             return Err(Perser::error(
                 None,
                 "Expect ')' after expression.".to_string(),
             ));
         }
 
-        Err(Perser::error(None, "Unknown token type".to_string()))
+        Err(Perser::error(None, "Expect an expression".to_string()))
     }
 
     fn consume(&mut self, ttype: TokenType) -> Option<Token> {
-        if self.check(ttype) {
+        if self.check(&ttype) {
             return Some(self.advance());
         }
 
@@ -154,33 +166,33 @@ impl Perser {
         LoxError::error(token, msg)
     }
 
-    fn synchronize(&mut self) {
-        if self.previous().is(TokenType::Semicolon) {
-            return;
-        }
+    // fn synchronize(&mut self) {
+    //     if self.previous().is(TokenType::Semicolon) {
+    //         return;
+    //     }
 
-        while !self.is_at_end() {
-            if matches!(
-                self.peek().ttype,
-                TokenType::Class
-                    | TokenType::Fun
-                    | TokenType::Var
-                    | TokenType::For
-                    | TokenType::If
-                    | TokenType::While
-                    | TokenType::Print
-                    | TokenType::Return
-            ) {
-                return;
-            }
+    //     while !self.is_at_end() {
+    //         if matches!(
+    //             self.peek().ttype,
+    //             TokenType::Class
+    //                 | TokenType::Fun
+    //                 | TokenType::Var
+    //                 | TokenType::For
+    //                 | TokenType::If
+    //                 | TokenType::While
+    //                 | TokenType::Print
+    //                 | TokenType::Return
+    //         ) {
+    //             return;
+    //         }
 
-            self.advance();
-        }
-    }
+    //         self.advance();
+    //     }
+    // }
 
     fn is_match(&mut self, ttypes: &[TokenType]) -> bool {
         for ttype in ttypes {
-            if self.check(ttype.clone()) {
+            if self.check(&ttype) {
                 self.advance();
                 return true;
             }
@@ -188,16 +200,16 @@ impl Perser {
         false
     }
 
-    fn check(&mut self, ttype: TokenType) -> bool {
-        if !self.is_at_end() {
+    fn check(&mut self, ttype: &TokenType) -> bool {
+        if self.is_at_end() {
             return false;
         }
 
-        self.peek().is(ttype)
+        self.peek().is(&ttype)
     }
 
     fn is_at_end(&mut self) -> bool {
-        self.peek().is(TokenType::Eof)
+        self.peek().is(&TokenType::Eof)
     }
 
     fn advance(&mut self) -> Token {

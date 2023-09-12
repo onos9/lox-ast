@@ -93,7 +93,7 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
     writeln!(file, "")?;
 
     // Generate trait
-    writeln!(file, "trait ExprVisitor<T> {{")?;
+    writeln!(file, "pub trait ExprVisitor<T> {{")?;
     for tt in &tree_types {
         writeln!(
             file,

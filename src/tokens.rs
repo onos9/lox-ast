@@ -50,8 +50,8 @@ impl Token {
         }
     }
 
-    pub fn is(&self, ttype: TokenType) -> bool {
-        self.ttype == ttype
+    pub fn is(&self, ttype: &TokenType) -> bool {
+        self.ttype == *ttype
     }
 }
 
