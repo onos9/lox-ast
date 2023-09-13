@@ -95,49 +95,47 @@ impl<'a> Perser<'a> {
 
     fn unary(&mut self) -> Result<Expr, LoxError> {
         let ttypes = vec![TokenType::Bang, TokenType::Minus];
+        let mut expr = self.primary()?;
 
         while self.is_match(&ttypes) {
             let operator = self.previous();
             let right = self.term()?;
-            let expr = Expr::Unary(UnaryExpr {
+            expr = Expr::Unary(UnaryExpr {
                 operator,
                 right: Box::new(right),
             });
-
-            return Ok(expr);
         }
 
-        let expr = self.primary()?;
         Ok(expr)
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {
-        if self.is_match(&vec![TokenType::False]) {
+        if self.is_match(&[TokenType::False]) {
             return Ok(Expr::Literal(LiteralExpr {
                 value: Some(Object::False),
             }));
         }
 
-        if self.is_match(&vec![TokenType::True]) {
+        if self.is_match(&[TokenType::True]) {
             return Ok(Expr::Literal(LiteralExpr {
                 value: Some(Object::True),
             }));
         }
 
-        if self.is_match(&vec![TokenType::Nil]) {
+        if self.is_match(&[TokenType::Nil]) {
             return Ok(Expr::Literal(LiteralExpr {
                 value: Some(Object::Nil),
             }));
         }
 
-        if self.is_match(&vec![TokenType::Number, TokenType::String]) {
+        if self.is_match(&[TokenType::Number, TokenType::String]) {
             return Ok(Expr::Literal(LiteralExpr {
                 value: self.previous().literal,
             }));
         }
 
-        if self.is_match(&vec![TokenType::LeftParen]) {
-            if let Some(_) = self.consume(TokenType::RightParen) {
+        if self.is_match(&[TokenType::LeftParen]) {
+            if self.consume(TokenType::RightParen).is_some() {
                 let expr = Expr::Grouping(GroupingExpr {
                     expression: Box::new(self.expression()?),
                 });
@@ -192,7 +190,7 @@ impl<'a> Perser<'a> {
 
     fn is_match(&mut self, ttypes: &[TokenType]) -> bool {
         for ttype in ttypes {
-            if self.check(&ttype) {
+            if self.check(ttype) {
                 self.advance();
                 return true;
             }
@@ -205,7 +203,7 @@ impl<'a> Perser<'a> {
             return false;
         }
 
-        self.peek().is(&ttype)
+        self.peek().is(ttype)
     }
 
     fn is_at_end(&mut self) -> bool {

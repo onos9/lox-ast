@@ -103,7 +103,7 @@ impl Scanner {
     }
 
     fn divider(&mut self, ch: char) -> Result<TokenType, LoxError> {
-        if let Some(_) = self.is_match(ch) {
+        if self.is_match(ch).is_some() {
             while self.peek() != '\n' && !self.is_at_end() {
                 self.advance();
             }

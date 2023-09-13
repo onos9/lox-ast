@@ -69,7 +69,7 @@ fn run_promt() {
 fn run(source: String) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens()?;
-    let mut parser = Perser::new(&tokens);
+    let mut parser = Perser::new(tokens);
 
     match parser.parse() {
         None => {}

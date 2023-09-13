@@ -28,15 +28,14 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
     writeln!(file, "use crate::tokens::*;")?;
 
     for ttype in types {
-        let (base_class_name, args) = ttype.split_once(":").unwrap();
+        let (base_class_name, args) = ttype.split_once(':').unwrap();
         let class_name = format!("{}{}", base_class_name.trim(), base_name);
-        let ags_split = args.split(",");
+        let ags_split = args.split(',');
         let mut fields: Vec<String> = Vec::new();
 
         for arg in ags_split {
-            let (tpy, name) = arg.trim().split_once(" ").unwrap();
-            let field: String;
-            field = match tpy {
+            let (tpy, name) = arg.trim().split_once(' ').unwrap();
+            let field = match tpy {
                 "Token" => format!("{}: {}", name, tpy),
                 "Object" => format!("{}: Option<{}>", name, tpy),
                 _ => format!("{}: Box<{}>", name, tpy),
@@ -88,9 +87,9 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
             writeln!(file, "    pub {f},")?;
         }
         writeln!(file, "}}")?;
-        writeln!(file, "")?;
+        writeln!(file)?;
     }
-    writeln!(file, "")?;
+    writeln!(file)?;
 
     // Generate trait
     writeln!(file, "pub trait ExprVisitor<T> {{")?;
@@ -120,9 +119,9 @@ fn define_ast(output_dir: &String, base_name: &str, types: Vec<&str>) -> io::Res
         )?;
         writeln!(file, "    }}")?;
         writeln!(file, "}}")?;
-        writeln!(file, "")?;
+        writeln!(file)?;
     }
-    writeln!(file, "")?;
+    writeln!(file)?;
 
     Ok(())
 }

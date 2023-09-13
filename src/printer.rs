@@ -11,7 +11,7 @@ impl AstPrinter {
         expr.eccept(self)
     }
 
-    pub fn parenthesize(&self, lexeme: &String, exprs: &[&Box<Expr>]) -> Result<String, LoxError> {
+    pub fn parenthesize(&self, lexeme: &String, exprs: &[&Expr]) -> Result<String, LoxError> {
         let mut builder = format!("({lexeme}");
         for expr in exprs {
             builder = format!("{builder} {}", expr.eccept(self)?);
@@ -24,11 +24,11 @@ impl AstPrinter {
 
 impl ExprVisitor<String> for AstPrinter {
     fn visitor_binary_expr(&self, expr: &BinaryExpr) -> Result<String, LoxError> {
-        self.parenthesize(&expr.operator.lexeme, &vec![&expr.left, &expr.right])
+        self.parenthesize(&expr.operator.lexeme, &[&expr.left, &expr.right])
     }
 
     fn visitor_grouping_expr(&self, expr: &GroupingExpr) -> Result<String, LoxError> {
-        self.parenthesize(&"group".to_string(), &vec![&expr.expression])
+        self.parenthesize(&"group".to_string(), &[&expr.expression])
     }
     fn visitor_literal_expr(&self, expr: &LiteralExpr) -> Result<String, LoxError> {
         if let Some(value) = &expr.value {
@@ -38,7 +38,7 @@ impl ExprVisitor<String> for AstPrinter {
         }
     }
     fn visitor_unary_expr(&self, expr: &UnaryExpr) -> Result<String, LoxError> {
-        self.parenthesize(&expr.operator.lexeme, &vec![&expr.right])
+        self.parenthesize(&expr.operator.lexeme, &[&expr.right])
     }
 }
 
