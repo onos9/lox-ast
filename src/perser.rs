@@ -2,6 +2,7 @@ use crate::error::*;
 use crate::expr::*;
 use crate::token_type::*;
 use crate::tokens::*;
+use crate::object::*;
 
 pub struct Perser<'a> {
     tokens: &'a Vec<Token>,

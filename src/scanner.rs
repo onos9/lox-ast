@@ -1,6 +1,7 @@
 use crate::error::*;
 use crate::token_type::*;
 use crate::tokens::*;
+use crate::object::*;
 
 #[derive(Debug)]
 pub struct Scanner {

@@ -5,6 +5,7 @@ mod printer;
 mod scanner;
 mod token_type;
 mod tokens;
+mod object;
 
 use error::*;
 use perser::*;
